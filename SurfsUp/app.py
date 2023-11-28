@@ -13,7 +13,7 @@ from flask import Flask, jsonify
 # Database Setup
 #################################################
 
-engine = create_engine("sqlite:///hawaii.sqlite")
+engine = create_engine("sqlite:///../Resources/hawaii.sqlite")
 
 # reflect an existing database into a new model
 Base = automap_base()
@@ -22,7 +22,7 @@ Base = automap_base()
 Base.prepare(autoload_with = engine)
 
 # Save references to each table
-Named_Station = Base.classes.station
+Station = Base.classes.station
 Measurements = Base.classes.measurement
 
 # Create our session (link) from Python to the DB
@@ -42,10 +42,14 @@ app = Flask(__name__)
 def welcome_page():
     return( f"<p>Welcome to the Hawaii Weather!! Surf's UP!!</p><br/>"
             f"<p>Below is your Navigation Guide</p><br/><br/>"
-            f"/api/v1.0/precipitation<br/>Returns a JSON list of percipitation data for the dates between 8/23/16 and 8/23/17<br/><br/>"
-            f"/api/v1.0/stations<br/>Returns a JSON list of the weather stations<br/><br/>"
-            f"/api/v1.0/tobs<br/>Returns a JSON list of the Temperature Observations (tobs) for each station for the dates between 8/23/16 and 8/23/17<br/><br/>"
-            f"/api/v1.0/date<br/>Returns a JSON list of the minimum temperature, the average temperature, and the max temperature for the dates between the given start date and 8/23/17<br/><br/>."
-            f"/api/v1.0/start_date/end_date<br/>Returns a JSON list of the minimum temperature, the average temperature, and the max temperature for the dates between the given start date and end date<br/><br/>."
+            f"/api/v1.0/precipitation<br/>"
+            f"/api/v1.0/stations<br/>"
+            f"/api/v1.0/tobs<<br/>"
+            f"/api/v1.0/date<br/>"
+            f"/api/v1.0/start_date/end_date<br/>"
         )
-    
+
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
