@@ -39,8 +39,7 @@ app = Flask(__name__)
 # Flask Routes
 #################################################
 
-last_year = dt.date(2017,8,23) - dt.timedelta(days=365)
-last_twelve_months = '2016-08-23'
+last_year_delta = dt.date(2017,8,23) - dt.timedelta(days=365)
 
 @app.route("/")
 def welcome_page():
@@ -48,12 +47,15 @@ def welcome_page():
     return(
     
             f"<h1>Welcome to the Hawaii Weather!! Surf's UP!!</h1>"
+            # f"<img src"https://i0.wp.com/penthouse.com/wp-content/uploads/sites/9/2022/12/vetranSurf.jpg?fit=1320%2C585&ssl=1" ">
             f"<h2>Below is your Navigation Guide</h2>"
             f"<h3>/api/v1.0/precipitation  <-- Measuring the amount of rain and other weather conditions based on period of one year</h3>"
             f"<h3>/api/v1.0/stations    <-- Shows list of Stations ID and Names/Locations </h3>"
             f"<h3>/api/v1.0/tobs        <-- Display Tempatures and sort based on the most active station by descending order</h3>"
-            f"<h3>/api/v1.0/<start><br/>"     f"<-- start date (YYYY-MM-DD), calculates the MIN/AVG/MAX temperature for all dates greater than and equal to the start date<br/></h3>"
-            f"<h3>/api/v1.0/<start>/<end><br/>"  f"<-- displays start and the end date (YYYY-MM-DD), calculated the MIN/AVG/MAX temperature for dates between the start and end date inclusive</h3>"
+            f"<h3>/api/v1.0/<start>"
+            f"  <-- Displays start date (YYYY-MM-DD), calculates the MIN/AVG/MAX temperature for all dates greater than and equal to the start date<br/></h3>"
+            f"<h3>/api/v1.0/<start>/<end>"
+            f"  <-- Displays start and the end date (YYYY-MM-DD), calculated the MIN/AVG/MAX temperature for dates between the start and end date inclusive</h3>"
             )
         
         
@@ -63,7 +65,7 @@ def welcome_page():
 @app.route("/api/v1.0/precipitation")
 def precipitation():
     prcp = session.query(Measurements.date, Measurements.prcp).\
-    filter(Measurements.date >= last_year)
+    filter(Measurements.date >= last_year_delta).all()
     session.close()
     prcp_list = dict(prcp)
     return jsonify(prcp_list)
@@ -84,7 +86,7 @@ def stations():
 @app.route("/api/v1.0/tobs")
 def tobs():
     temp_results = session.query(Measurements.date, Measurements.tobs, Measurements.station).\
-    filter(Measurements.date >= last_year).\
+    filter(Measurements.date >= last_year_delta).\
     group_by(Measurements.date).\
     order_by(func.count(Measurements.station)).all()
     temp = []
@@ -118,23 +120,25 @@ def start_range(start):
     last_year = dt.timedelta(days=365)
     start = start_date - last_year
     end =  dt.date(2017, 8, 23)
-    start_query = session.query(Measurements.date, func.min(Measurements.tobs), func.avg(Measurements.tobs), func.max(Measurements.tobs)).\
-    filter(Measurements.date >= date_start).\
-    filter(Measurements.date <= date_end).all()
+    start_query = session.query(Measurements.station, Measurements.date, func.min(Measurements.tobs), func.avg(Measurements.tobs), func.max(Measurements.tobs)).\
+    filter(Measurements.date >= start).\
+    filter(Measurements.date <= end).all()
+    session.close()
     dict_start = list(np.ravel(start_query))
     return jsonify(dict_start)
     
     
-@app.route("/api/v1.0/<start>/<end>")
-def start_end_range(start,  end):
+@app.route("/api/v1.0//<start>/<end>")
+def start_end_range(start,end):
     start_date= dt.datetime.strptime(start, '%Y-%m-%d')
     end_date= dt.datetime.strptime(end,'%Y-%m-%d')
     last_year = dt.timedelta(days=365)
     start = start_date-last_year
     end = end_date-last_year
-    start_end_query = session.query(Measurements.date, func.min(Measurements.tobs), func.avg(Measurements.tobs), func.max(Measurements.tobs)).\
-    filter(Measurements.date >= date_start).\
-    filter(Measurements.date <= date_end).all()
+    start_end_query = session.query(Measurements.station, Measurements.date, func.min(Measurements.tobs), func.avg(Measurements.tobs), func.max(Measurements.tobs)).\
+    filter(Measurements.date >= start).\
+    filter(Measurements.date <= end).all()
+    session.close()
     dict_start_end = list(np.ravel(start_end_query))
     return jsonify(dict_start_end)
 
